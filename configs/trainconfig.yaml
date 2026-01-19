@@ -1,0 +1,19 @@
+model:
+  z_dim: 100
+  feature_maps_g: 32
+  feature_maps_d: 32
+
+training:
+  epochs: 100
+  lr: 0.0002
+  beta1: 0.5
+  beta2: 0.999
+  save_interval_epoch: 10
+  log_interval_step: 50
+  device: "cuda"
+
+stabilization:
+  label_smoothing: true
+  label_flipping: true
+  input_noise: true
+  flip_prob: 0.05

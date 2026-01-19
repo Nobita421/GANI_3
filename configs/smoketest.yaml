@@ -1,0 +1,28 @@
+# Inherit/Override params for smoke test
+dataset:
+  path: "Data/Real"
+  image_size: 64
+  channels: 3
+  batch_size: 4
+  num_workers: 0
+  shuffle: true
+
+model:
+  z_dim: 100
+  feature_maps_g: 32
+  feature_maps_d: 32
+
+training:
+  epochs: 1
+  lr: 0.0002
+  beta1: 0.5
+  beta2: 0.999
+  save_interval_epoch: 1
+  log_interval_step: 1
+  device: "cpu" # Force CPU for smoke test compatibility
+
+stabilization:
+  label_smoothing: true
+  label_flipping: false
+  input_noise: false
+  flip_prob: 0.05

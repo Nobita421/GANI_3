@@ -1,0 +1,12 @@
+dataset:
+  path: "Data/Real"
+  image_size: 64
+  channels: 3
+  batch_size: 64
+  num_workers: 4
+  shuffle: true
+  
+classes:
+  - healthy
+  - blight
+  - rust

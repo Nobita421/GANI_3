@@ -1,0 +1,15 @@
+torch
+torchvision
+numpy
+matplotlib
+PyYAML
+tqdm
+tensorboard
+streamlit
+fastapi
+uvicorn
+Pillow
+requests
+pandas
+scikit-learn
+scipy
