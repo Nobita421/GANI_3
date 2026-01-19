@@ -1,16 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from src.inference import InferenceEngine
+from src.inference import load_model
 from src.monitoring import monitor
 import base64
 from io import BytesIO
-import torch
+import os
 
 app = FastAPI(title="CropLeafGAN API", version="1.0")
 
 # Global engine (lazy load)
 engine = None
-CHECKPOINT_PATH = "checkpoints/G_epoch_1.pth" # Default to epoch 1 for demo or latest
+CONFIG_PATH = "configs/trainconfig.yaml"
 
 class GenerateRequest(BaseModel):
     crop: str
@@ -18,15 +18,13 @@ class GenerateRequest(BaseModel):
     count: int
 
 @app.on_event("startup")
-def load_model():
+def load_model_on_startup():
     global engine
-    # In a real app, we might scan for the latest checkpoint
-    import os
-    if os.path.exists(CHECKPOINT_PATH):
-        engine = InferenceEngine(CHECKPOINT_PATH)
-        print(f"Model loaded from {CHECKPOINT_PATH}")
-    else:
-        print(f"Warning: Checkpoint {CHECKPOINT_PATH} not found. API might fail.")
+    try:
+        engine = load_model(config_path=CONFIG_PATH)
+        print("Model loaded.")
+    except Exception as e:
+        print(f"Warning: Model not loaded. {e}")
 
 @app.get("/health")
 def health_check():
@@ -51,7 +49,7 @@ def generate_images(req: GenerateRequest):
     
     # Generate
     try:
-        images = engine.generate(req.count) # Tensor list
+        images = engine.generate(req.count)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

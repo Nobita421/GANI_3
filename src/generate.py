@@ -1,7 +1,7 @@
 import argparse
 import os
 import torchvision.utils as vutils
-from src.inference import InferenceEngine
+from src.inference import generate_images
 
 def main():
     parser = argparse.ArgumentParser()
@@ -9,13 +9,13 @@ def main():
     parser.add_argument("--disease", type=str, default="blight", help="Disease name") # Placeholder
     parser.add_argument("--n", type=int, default=10, help="Number of images")
     parser.add_argument("--out", type=str, default="output", help="Output directory")
-    parser.add_argument("--checkpoint", type=str, required=True, help="Path to generator checkpoint")
+    parser.add_argument("--checkpoint", type=str, default=None, help="Path to generator checkpoint")
+    parser.add_argument("--config", type=str, default="configs/trainconfig.yaml", help="Config path")
     args = parser.parse_args()
     
     os.makedirs(args.out, exist_ok=True)
     
-    engine = InferenceEngine(args.checkpoint)
-    images = engine.generate(args.n)
+    images = generate_images(args.crop, args.disease, args.n, config_path=args.config, checkpoint_path=args.checkpoint)
     
     for i, img in enumerate(images):
         vutils.save_image(img, os.path.join(args.out, f"{args.crop}_{args.disease}_{i}.png"))

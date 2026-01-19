@@ -4,18 +4,18 @@ def get_main_css():
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f4f1ea;
-            --text-color: #2d3a3a;
-            --accent-color: #4a5d23;
-            --accent-light: #8fa080;
-            --paper-shadow: 2px 2px 10px rgba(0,0,0,0.05);
-            --border-color: #e0ddd5;
+            --bg-color: #f6f7fb;
+            --text-color: #1f2937;
+            --accent-color: #2f855a;
+            --accent-light: #a7f3d0;
+            --paper-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
+            --border-color: #e5e7eb;
+            --card-bg: #ffffff;
+            --muted: #6b7280;
         }
 
-        /* Global Reset & Base */
         .stApp {
-            background_color: var(--bg-color);
-            background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png"); /* Subtle texture if possible, else fallback color */
+            background-color: var(--bg-color);
             font-family: 'Crimson Text', serif;
             color: var(--text-color);
         }
@@ -24,67 +24,103 @@ def get_main_css():
             font-family: 'Crimson Text', serif;
             font-weight: 700;
             color: var(--text-color);
+            letter-spacing: 0.2px;
         }
 
         .stButton button {
-            background-color: transparent !important;
-            border: 2px solid var(--accent-color) !important;
-            color: var(--accent-color) !important;
+            background-color: var(--accent-color) !important;
+            border: 1px solid var(--accent-color) !important;
+            color: #ffffff !important;
             font-family: 'Fira Code', monospace !important;
-            border-radius: 2px !important;
-            transition: all 0.3s ease;
+            border-radius: 10px !important;
+            transition: all 0.2s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
             font-size: 0.8rem;
+            padding: 0.6rem 1rem !important;
         }
 
         .stButton button:hover {
-            background-color: var(--accent-color) !important;
-            color: var(--bg-color) !important;
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+            background-color: #276749 !important;
+            border-color: #276749 !important;
+            box-shadow: 0 8px 18px rgba(47, 133, 90, 0.2);
             transform: translateY(-1px);
         }
 
-        /* Sidebar */
         .stSidebar {
-            background-color: #ece8e1;
+            background-color: #ffffff;
             border-right: 1px solid var(--border-color);
         }
-        
+
         .stSidebar .stSelectbox label, .stSidebar .stSlider label {
             font-family: 'Fira Code', monospace;
             font-size: 0.8rem;
-            color: var(--accent-color);
+            color: var(--muted);
         }
 
-        /* Specimen Stamp Card */
-        .specimen-card {
-            background-color: white;
-            padding: 15px;
-            border: 1px solid #e6e6e6;
+        .app-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px 22px;
             box-shadow: var(--paper-shadow);
-            margin-bottom: 20px;
-            position: relative;
-            transition: transform 0.2s;
-        }
-        
-        .specimen-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 4px 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 18px;
         }
 
-        .specimen-img {
-            width: 100%;
-            border: 1px solid #eee;
-            margin-bottom: 10px;
-            display: block;
+        .app-title {
+            font-size: 1.7rem;
+            margin-bottom: 4px;
+        }
+
+        .app-subtitle {
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-family: 'Fira Code', monospace;
+            background: #ecfdf3;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            margin-right: 6px;
+        }
+
+        .badge-muted {
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--paper-shadow);
+        }
+
+        .stat {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--muted);
         }
 
         .specimen-label {
             font-family: 'Fira Code', monospace;
             font-size: 0.75rem;
-            color: #666;
-            border-top: 1px dashed #ccc;
+            color: #6b7280;
+            border-top: 1px dashed #e5e7eb;
             padding-top: 8px;
             display: flex;
             justify-content: space-between;
@@ -93,55 +129,6 @@ def get_main_css():
         .specimen-id {
             color: var(--accent-color);
             font-weight: bold;
-        }
-
-        /* Tabs as Sticky Bookmarks */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 10px;
-            background-color: transparent;
-        }
-
-        .stTabs [data-baseweb="tab"] {
-            background-color: #e8e4dc;
-            border-radius: 5px 5px 0 0;
-            padding: 10px 20px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            border: 1px solid transparent;
-            color: #888;
-        }
-
-        .stTabs [data-baseweb="tab"][aria-selected="true"] {
-            background-color: var(--bg-color);
-            color: var(--accent-color);
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-            font-weight: bold;
-        }
-        
-        /* Metric Cards */
-        .metric-container {
-            border: 1px solid var(--accent-color);
-            padding: 1rem;
-            background: #fff;
-            position: relative;
-        }
-        
-        .metric-title {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.8rem;
-            background: var(--bg-color);
-            position: absolute;
-            top: -0.6em;
-            left: 10px;
-            padding: 0 5px;
-            color: var(--accent-color);
-        }
-        
-        .metric-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--text-color);
         }
 
     </style>

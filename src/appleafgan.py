@@ -20,7 +20,7 @@ sys.path.append(os.getcwd())
 # Import Backend Modules
 # Try/Except to handle potential missing modules during dev
 try:
-    from src.inference import InferenceEngine
+    from src.inference import load_model
     from src.ui_styles import get_main_css
     from src.monitoring import monitor
 except ImportError as e:
@@ -50,13 +50,8 @@ os.makedirs(NOTEBOOK_DIR, exist_ok=True)
 @st.cache_resource
 def load_engine():
     # Attempt to find the latest checkpoint
-    checkpoint = "checkpoints/G_epoch_1.pth"
-    if not os.path.exists(checkpoint):
-        # Fallback for UI Dev/Demo if no model exists
-        return None 
     try:
-        engine = InferenceEngine(checkpoint)
-        return engine
+        return load_model(config_path="configs/trainconfig.yaml")
     except Exception as e:
         st.error(f"Error loading model: {e}")
         return None
@@ -64,6 +59,35 @@ def load_engine():
 engine = load_engine()
 
 # --- Helpers ---
+def render_header(title, subtitle, badges=None):
+    badges_html = "".join(
+        [f"<span class='badge {cls}'>{text}</span>" for text, cls in (badges or [])]
+    )
+    st.markdown(
+        f"""
+        <div class="app-header">
+            <div class="app-title">{title}</div>
+            <div class="app-subtitle">{subtitle}</div>
+            <div style="margin-top: 8px;">{badges_html}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_stat_cards(stats):
+    cols = st.columns(len(stats))
+    for col, (label, value) in zip(cols, stats):
+        with col:
+            st.markdown(
+                f"""
+                <div class="card">
+                    <div class="stat">{value}</div>
+                    <div class="stat-label">{label}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 def save_notebook_entry(crop, disease, count, seed, images):
     entry_id = str(uuid.uuid4())[:8]
     timestamp = datetime.now().isoformat()
@@ -104,47 +128,67 @@ def mock_registry_data():
 # --- Page Functions ---
 
 def render_notebook():
-    st.markdown("## 📒 Field Notebook / Generate")
-    st.markdown("Create new synthetic specimens for your collection.")
+    render_header(
+        "CropLeaf Studio",
+        "Generate synthetic leaf disease specimens with curated controls and research-ready outputs.",
+        badges=[
+            ("GAN • DCGAN", "badge"),
+            ("Dataset Augmentation", "badge badge-muted"),
+        ],
+    )
+
+    last_batch = len(st.session_state.get('last_generated', []))
+    status_text = "Online" if engine else "Offline (Demo)"
+    render_stat_cards([
+        ("Inference Engine", status_text),
+        ("Last Batch", f"{last_batch} images"),
+        ("Notebook Entries", len(glob.glob(os.path.join(NOTEBOOK_DIR, "entry_*.json"))))
+    ])
     
     col1, col2 = st.columns([1, 2], gap="large")
     
     with col1:
         st.markdown("### Configuration")
-        with st.container(border=True):
-            crop = st.selectbox("Specimen Crop", ["Tomato", "Potato", "Corn"], help="Select the plant species.")
-            disease = st.selectbox("Disease Condition", ["Early Blight", "Late Blight", "Healthy", "Rust"], help="Target pathology.")
-            
-            count = st.slider("Batch Size", 1, 12, 4, help="Number of specimens to generate.")
-            
-            seed_input = st.text_input("Seed (Optional)", placeholder="Random", help="Fixed seed for reproducibility.")
-            
-            if st.button("🌱 Cultivate Specimens", use_container_width=True):
+        with st.container():
+            with st.form("generate_form"):
+                crop = st.selectbox("Specimen Crop", ["Tomato", "Potato", "Corn"], help="Select the plant species.")
+                disease = st.selectbox("Disease Condition", ["Early Blight", "Late Blight", "Healthy", "Rust"], help="Target pathology.")
+
+                count = st.slider("Batch Size", 1, 24, 6, help="Number of specimens to generate.")
+
+                with st.expander("Advanced Options"):
+                    seed_input = st.text_input("Seed (Optional)", placeholder="Random", help="Fixed seed for reproducibility.")
+                    grid_cols = st.slider("Gallery Columns", 2, 6, 4)
+
+                submit = st.form_submit_button("🌱 Generate Specimens", use_container_width=True)
+
+            if submit:
                 if not engine:
                     st.warning("Model not loaded. Running in Demo Mode (Noise/Random).")
-                    # Demo Logic
-                    # Generate random noise images
                     fake_images = [Image.fromarray(np.random.randint(0, 255, (128, 128, 3), dtype=np.uint8)) for _ in range(count)]
                 else:
                     try:
-                        # Set seed if provided
                         if seed_input.isdigit():
                             from src.utils import set_seed
                             set_seed(int(seed_input))
-                        
+
                         tensor_images = engine.generate(count)
                         to_pil = ToPILImage()
                         fake_images = [to_pil(img) for img in tensor_images]
-                        
-                        # Log request
+
                         monitor.log_request(crop, disease, count)
-                        
                     except Exception as e:
                         st.error(f"Generation failed: {e}")
                         fake_images = []
 
                 st.session_state['last_generated'] = fake_images
-                st.session_state['last_params'] = {'crop': crop, 'disease': disease, 'count': count, 'seed': seed_input}
+                st.session_state['last_params'] = {
+                    'crop': crop,
+                    'disease': disease,
+                    'count': count,
+                    'seed': seed_input,
+                    'grid_cols': grid_cols
+                }
 
     with col2:
         st.markdown("### Specimen Board")
@@ -154,9 +198,10 @@ def render_notebook():
             params = st.session_state['last_params']
             
             # Grid Layout
-            cols = st.columns(4)
+            grid_cols = params.get('grid_cols', 4)
+            cols = st.columns(grid_cols)
             for idx, img in enumerate(images):
-                with cols[idx % 4]:
+                with cols[idx % grid_cols]:
                     # Card HTML for styling
                     # Convert img to base64 for embedding in HTML if needed, but st.image is easier.
                     # We'll use st.image inside a styled container concept slightly hacked via markdown or just use standard st elements with CSS classes.
@@ -172,7 +217,7 @@ def render_notebook():
             st.divider()
             
             # Actions
-            act_col1, act_col2 = st.columns(2)
+            act_col1, act_col2, act_col3 = st.columns([1, 1, 1])
             with act_col1:
                 if st.button("📎 Attach to Entry", help="Save these specimens to your local notebook."):
                     entry_id = save_notebook_entry(params['crop'], params['disease'], params['count'], params['seed'], images)
@@ -194,13 +239,21 @@ def render_notebook():
                     mime="application/zip"
                 )
 
+            with act_col3:
+                if st.button("🧹 Clear", help="Clear current batch from the board."):
+                    st.session_state.pop('last_generated', None)
+                    st.session_state.pop('last_params', None)
+
         else:
             st.info("Configure variables and click 'Cultivate Specimens' to begin.")
 
 
 def render_lightbox():
-    st.markdown("## 🔍 Lightbox / Inspect")
-    st.markdown("Compare synthetic specimens against reference visualization.")
+    render_header(
+        "Lightbox",
+        "Inspect synthetic specimens with histograms and reference comparison.",
+        badges=[("Inspection", "badge"), ("Nearest Neighbor", "badge badge-muted")],
+    )
     
     if 'last_generated' not in st.session_state:
         st.warning("No specimens in cache. Go to 'Notebook' and generate some first.")
@@ -238,8 +291,11 @@ def render_lightbox():
 
 
 def render_metrics():
-    st.markdown("## 📈 Metrics Bench")
-    st.markdown("Model performance tracking and training artifacts.")
+    render_header(
+        "Metrics Bench",
+        "Track FID/IS curves, training losses, and evaluation artifacts.",
+        badges=[("FID/IS", "badge"), ("Training Logs", "badge badge-muted")],
+    )
     
     # Check figures dir
     figures = glob.glob(os.path.join(FIGURES_DIR, "*.png")) + glob.glob(os.path.join(FIGURES_DIR, "*.jpg"))
@@ -260,8 +316,11 @@ def render_metrics():
         st.image(figures, width=300, caption=[os.path.basename(f) for f in figures])
 
 def render_registry():
-    st.markdown("## 📚 Registry & Provenance")
-    st.markdown("Model version history and usage logs.")
+    render_header(
+        "Registry & Provenance",
+        "Versioned models, metadata, and usage logs for governance.",
+        badges=[("Model Registry", "badge"), ("Usage Logs", "badge badge-muted")],
+    )
     
     st.markdown("### Version History")
     versions = mock_registry_data()

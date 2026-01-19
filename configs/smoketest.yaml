@@ -20,9 +20,16 @@ training:
   save_interval_epoch: 1
   log_interval_step: 1
   device: "cpu" # Force CPU for smoke test compatibility
+  log_dir: "logs"
+  checkpoints_dir: "checkpoints"
+  samples_dir: "samples"
+  figures_dir: "figures"
 
 stabilization:
   label_smoothing: true
   label_flipping: false
   input_noise: false
   flip_prob: 0.05
+  grad_clip: 1.0
+  input_noise_max: 0.05
+  input_noise_decay_epochs: 10
