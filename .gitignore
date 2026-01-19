@@ -55,6 +55,14 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.venv/
+venv.bak/
+lib/
+lib64/
+
+# Virtual environment site-packages
+site-packages/
+dist-packages/
 
 # IDE
 .vscode/
@@ -62,10 +70,20 @@ venv.bak/
 *.swp
 *.swo
 *~
+*.sublime-workspace
+*.sublime-project
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
+# Streamlit
+.streamlit/
 
 # Project specific
 logs/
@@ -83,3 +101,6 @@ Data/Real/train/
 *.tmp
 *.log
 usage_logs.json
+*.cpython-*.pyc
+*.pth
+*.dist-info/
